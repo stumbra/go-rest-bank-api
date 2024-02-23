@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/stumbra/go-rest-bank-api/controllers"
+	"github.com/stumbra/go-rest-bank-api/database"
 )
 
 func main() {
@@ -16,25 +17,20 @@ func main() {
 
 	}
 
+	db := database.NewPostgresStore()
+
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
 
-	gin.SetMode(gin.ReleaseMode)
+	// Attach the database instance to the Gin context using middleware
+	router.Use(func(ctx *gin.Context) {
+		ctx.Set("db", db)
+		ctx.Next()
+	})
 
 	v1 := router.Group("/api/v1")
 
 	controllers.InjectAccountsRoutes(v1)
 
-	port := os.Getenv("SERVER_PORT")
-
-	err = router.Run(":" + port)
-
-	if err != nil {
-		fmt.Print("Server read at http://localhost:", port, "/api/v1")
-		fmt.Println()
-	}
-
+	router.Run(":" + os.Getenv("SERVER_PORT"))
 }
-
-// pgadmin
-// 5432
