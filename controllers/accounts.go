@@ -81,5 +81,22 @@ func handleCreateAccount(ctx *gin.Context) {
 }
 
 func handleDeleteAccount(ctx *gin.Context) {
+	id, err := strconv.Atoi(ctx.Param("id"))
 
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error(), "status": http.StatusBadRequest})
+		return
+	}
+
+	db := ctx.MustGet("db").(*database.PostgresStore)
+
+	if err := db.DeleteAccount(id); err != nil {
+		message := fmt.Sprintf("Account with ID - %d not found", id)
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": message, "status": http.StatusNotFound})
+		return
+	}
+
+	message := fmt.Sprintf("Account with ID - %d successfully deleted", id)
+
+	ctx.IndentedJSON(http.StatusOK, gin.H{"message": message, "status": http.StatusOK})
 }

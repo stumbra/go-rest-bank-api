@@ -76,6 +76,22 @@ func (s *PostgresStore) GetAccount(id int) (*models.Account, error) {
 	return nil, fmt.Errorf("account %d not found", id)
 }
 
+func (s *PostgresStore) DeleteAccount(id int) error {
+	query := `DELETE FROM account WHERE id = $1`
+
+	response, err := s.db.Exec(query, id)
+
+	if err != nil {
+		return err
+	}
+
+	if affected, _ := response.RowsAffected(); affected == 0 {
+		return fmt.Errorf("account %d not found", id)
+	}
+
+	return nil
+}
+
 func (s *PostgresStore) CreateAccountsTable() error {
 	query := `CREATE TABLE IF NOT EXISTS account (
 		id serial primary key,
